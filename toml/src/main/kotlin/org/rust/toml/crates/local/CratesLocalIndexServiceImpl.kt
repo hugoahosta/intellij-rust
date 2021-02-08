@@ -5,7 +5,9 @@
 
 package org.rust.toml.crates.local
 
-import com.google.gson.Gson
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
@@ -314,15 +316,17 @@ private object CrateExternalizer : DataExternalizer<CargoRegistryCrate> {
     }
 }
 
-private fun crateFromJson(json: String): CargoRegistryCrateVersion {
-    data class ParsedVersion(
-        val name: String,
-        val vers: String,
-        val yanked: Boolean,
-        val features: HashMap<String, List<String>>
-    )
+data class ParsedVersion(
+    @JsonProperty("name") val name: String,
+    @JsonProperty("vers") val vers: String,
+    @JsonProperty("yanked") val yanked: Boolean,
+    @JsonProperty("features") val features: HashMap<String, List<String>>
+)
 
-    val parsedVersion = Gson().fromJson(json, ParsedVersion::class.java)
+private fun crateFromJson(json: String): CargoRegistryCrateVersion {
+    val parsedVersion = ObjectMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .readValue(json, ParsedVersion::class.java)
 
     return CargoRegistryCrateVersion(
         parsedVersion.vers,
