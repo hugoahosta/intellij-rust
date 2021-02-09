@@ -1319,6 +1319,7 @@ private fun AnnotationSession.duplicatesByNamespace(
             + importedNames)
             .filter { it !is RsExternCrateItem } // extern crates can have aliases.
             .filter { it.nameOrImportedName() != null }
+            .filter { it.nameOrImportedName() != "_" }
             .filter { it.isEnabledByCfg && !it.isCfgUnknown }
             .flatMap { it.namespaced() }
             .groupBy { it.first }       // Group by namespace
